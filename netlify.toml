@@ -1,0 +1,13 @@
+[build]
+  command = "rm -rf node_modules && npm install --legacy-peer-deps && npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NODE_VERSION = "20"
+  CI = "false"
+  NPM_FLAGS = "--legacy-peer-deps"
+  NETLIFY_USE_YARN = "false"
+  NETLIFY_USE_PNPM = "false"
