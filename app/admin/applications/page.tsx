@@ -320,13 +320,13 @@ export default function ApplicationsPage() {
     try {
       setProcessing(true);
 
-      const { error } = await supabase
-        .from('account_applications')
-        .update({
-          status: newStatus,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', targetApplication.id);
+      const { error } = await (supabase as any)
+  .from('account_applications')
+  .update({
+    status: newStatus,
+    updated_at: new Date().toISOString(),
+  })
+  .eq('id', targetApplication.id);
 
       if (error) throw error;
 
@@ -372,13 +372,13 @@ export default function ApplicationsPage() {
 
       const nextStatus: ApplicationStatus = portalExists ? 'PORTAL_CREATED' : 'APPROVED';
 
-      const { error: applicationError } = await supabase
-        .from('account_applications')
-        .update({
-          status: nextStatus,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', application.id);
+      const { error: applicationError } = await (supabase as any)
+  .from('account_applications')
+  .update({
+    status: nextStatus,
+    updated_at: new Date().toISOString(),
+  })
+  .eq('id', application.id);
 
       if (applicationError) throw applicationError;
 
