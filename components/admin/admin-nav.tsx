@@ -18,12 +18,14 @@ import {
   Upload,
   Wrench,
   Wallet,
-  Phone
+  Phone,
+  FileCheck
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const navigation = [
   { name: 'Overview', href: '/admin/dashboard', icon: LayoutDashboard },
+  { name: 'Applications', href: '/admin/applications', icon: FileCheck },
   { name: 'Clients', href: '/admin/clients', icon: Users },
   { name: 'Holdings', href: '/admin/holdings', icon: TrendingUp },
   { name: 'Cash Management', href: '/admin/cash', icon: Wallet, badge: 'pending' },

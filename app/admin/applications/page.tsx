@@ -178,7 +178,10 @@ export default function ApplicationsPage() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+  console.error('updateStatus update failed:', error);
+  throw error;
+}
 
       const rows = (data || []) as ApplicationRow[];
       setApplications(rows);
@@ -320,13 +323,16 @@ export default function ApplicationsPage() {
     try {
       setProcessing(true);
 
-      const { error } = await (supabase as any)
+      const { data: updatedRows, error } = await (supabase as any)
   .from('account_applications')
   .update({
     status: newStatus,
     updated_at: new Date().toISOString(),
   })
-  .eq('id', targetApplication.id);
+  .eq('id', targetApplication.id)
+  .select();
+
+console.log('updateStatus result', { updatedRows, error, targetApplicationId: targetApplication.id, newStatus });
 
       if (error) throw error;
 
@@ -372,15 +378,26 @@ export default function ApplicationsPage() {
 
       const nextStatus: ApplicationStatus = portalExists ? 'PORTAL_CREATED' : 'APPROVED';
 
-      const { error: applicationError } = await (supabase as any)
+      const { data: approvedRows, error: applicationError } = await (supabase as any)
   .from('account_applications')
   .update({
     status: nextStatus,
     updated_at: new Date().toISOString(),
   })
-  .eq('id', application.id);
+  .eq('id', application.id)
+  .select();
 
-      if (applicationError) throw applicationError;
+console.log('approveApplication result', {
+  approvedRows,
+  applicationError,
+  applicationId: application.id,
+  nextStatus,
+});
+
+      if (applicationError) {
+  console.error('approveApplication update failed:', applicationError);
+  throw applicationError;
+}
 
       try {
         await (supabase as any).from('audit_logs').insert({
