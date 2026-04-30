@@ -124,12 +124,16 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', application.id);
 
-    return NextResponse.json({
-      success: true,
-      userId,
-      message: 'Client portal account created successfully.',
-      { headers: corsHeaders }
-    });
+    return NextResponse.json(
+  {
+    success: true,
+    userId,
+    message: 'Client portal account created successfully.',
+  },
+  {
+    headers: corsHeaders,
+  }
+);
   } catch (error: any) {
     console.error('Create client from application error:', error);
 
