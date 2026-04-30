@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();
@@ -8,7 +21,7 @@ export async function POST(req: NextRequest) {
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required.' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -27,7 +40,7 @@ export async function POST(req: NextRequest) {
     if (!application) {
       return NextResponse.json(
         { error: 'No application found for this email.' },
-        { status: 404 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -115,13 +128,14 @@ export async function POST(req: NextRequest) {
       success: true,
       userId,
       message: 'Client portal account created successfully.',
+      { headers: corsHeaders }
     });
   } catch (error: any) {
     console.error('Create client from application error:', error);
 
     return NextResponse.json(
       { error: error.message || 'Failed to create client account.' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
-}
+} 
