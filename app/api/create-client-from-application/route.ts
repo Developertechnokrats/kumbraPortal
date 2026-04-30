@@ -57,9 +57,33 @@ export async function POST(req: NextRequest) {
 
     let userId: string;
 
-    if (existingUser) {
-      userId = existingUser.id;
-    } else {
+  if (existingUser) {
+
+  userId = existingUser.id;
+
+  const { error: updateUserError } =
+
+    await supabaseAdmin.auth.admin.updateUserById(userId, {
+
+      password,
+
+      email_confirm: true,
+
+      user_metadata: {
+
+        name: fullName,
+
+      },
+
+    });
+
+  if (updateUserError) {
+
+    throw new Error(updateUserError.message || 'Failed to update existing auth user.');
+
+  }
+
+} else {
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email: cleanEmail,
