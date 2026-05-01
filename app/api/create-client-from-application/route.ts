@@ -114,31 +114,39 @@ export async function POST(req: NextRequest) {
 
     if (profileError) throw profileError;
 
-    const { data: existingClient } = await supabaseAdmin
-      .from('clients')
-      .select('id')
-      .eq('user_id', userId)
-      .maybeSingle();
+    let clientId: string | null = null;
 
-    if (!existingClient) {
-      const { error: clientError } = await supabaseAdmin
-        .from('clients')
-        .insert({
-          user_id: userId,
-          account_type: 'INDIVIDUAL',
-          base_currency: application.preferred_currency || 'GBP',
-          kyc_status: 'PENDING',
-          bank_verified: false,
-          country_of_residence: application.country || null,
-          risk_profile: application.risk_tolerance || null,
-          date_of_birth: application.date_of_birth || null,
-          payment_account_name: application.bank_account_holder || null,
-          payment_account_number: application.bank_account_number || null,
-          account_status: 'ACTIVE',
-        });
+const { data: existingClient } = await supabaseAdmin
+  .from('clients')
+  .select('id')
+  .eq('user_id', userId)
+  .maybeSingle();
 
-      if (clientError) throw clientError;
-    }
+if (existingClient) {
+  clientId = existingClient.id;
+} else {
+  const { data: newClient, error: clientError } = await supabaseAdmin
+    .from('clients')
+    .insert({
+      user_id: userId,
+      account_type: 'INDIVIDUAL',
+      base_currency: application.preferred_currency || 'GBP',
+      kyc_status: 'PENDING',
+      bank_verified: false,
+      country_of_residence: application.country || null,
+      risk_profile: application.risk_tolerance || null,
+      date_of_birth: application.date_of_birth || null,
+      payment_account_name: application.bank_account_holder || null,
+      payment_account_number: application.bank_account_number || null,
+      account_status: 'ACTIVE',
+    })
+    .select('id')
+    .maybeSingle();
+
+  if (clientError) throw clientError;
+
+  clientId = newClient?.id || null;
+}
 
     await supabaseAdmin
       .from('account_applications')
@@ -152,6 +160,7 @@ export async function POST(req: NextRequest) {
   {
     success: true,
     userId,
+    clientId,
     message: 'Client portal account created successfully.',
   },
   {
