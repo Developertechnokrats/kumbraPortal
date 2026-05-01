@@ -68,6 +68,8 @@ interface ClientDetail {
 export default function ClientDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const idParam = params.id;
+  const clientId = Array.isArray(idParam) ? idParam[0] : idParam;
   const [client, setClient] = useState<ClientDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAddInvestmentOpen, setIsAddInvestmentOpen] = useState(false);
@@ -104,7 +106,7 @@ export default function ClientDetailPage() {
 
     if (clientError) throw clientError;
 
-      const { data: userData } = await supabase.auth.admin.getUserById((clientData as any).user_id);
+      //const { data: userData } = await supabase.auth.admin.getUserById((clientData as any).user_id);
 
       const [cashData, holdingsData, documentsData, transactionsData, auditLogsData, notificationsData, bankAccountsData, emailsData] = await Promise.all([
         supabase.from('cash_balances').select('*').eq('entity_id', clientId),
@@ -116,19 +118,20 @@ export default function ClientDetailPage() {
           `)
           .eq('entity_id', clientId)
           .order('created_at', { ascending: false }),
-        supabase.from('documents').select('*').eq('entity_id', clientId).order('created_at', { ascending: false }),
-        supabase.from('transactions').select('*').eq('entity_id', clientId).order('created_at', { ascending: false }),
-        supabase.from('audit_logs').select('*').eq('entity_id', clientId).order('created_at', { ascending: false }).limit(50),
-        supabase.from('notifications').select('*').eq('entity_id', clientId).order('created_at', { ascending: false }),
-        supabase.from('client_bank_accounts').select('*').eq('entity_id', clientId),
-        supabase.from('inbound_emails').select('*').eq('entity_id', clientId).order('created_at', { ascending: false }).limit(20),
+        supabase.from('cash_balances').select('*').eq('client_id', clientId),
+        supabase.from('holdings').select(`*, instrument:instruments(*)`).eq('client_id', clientId).order('created_at', { ascending: false }),
+        supabase.from('documents').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
+        supabase.from('transactions').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
+        supabase.from('notifications').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
+        supabase.from('client_bank_accounts').select('*').eq('client_id', clientId),
+        supabase.from('inbound_emails').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20),
       ]);
 
       setClient({
         ...(clientData as any),
         profile: {
           ...(clientData as any).profile,
-          email: userData?.user?.email || 'N/A',
+          email: 'N/A',
         },
         cash_balances: cashData.data || [],
         holdings: holdingsData.data || [],
@@ -154,7 +157,7 @@ export default function ClientDetailPage() {
           kyc_status: approved ? 'APPROVED' : 'REJECTED',
           kyc_rejection_reason: approved ? null : 'Pending review notes',
         })
-        .eq('id', params.id);
+        .eq('id', clientId);
 
       if (result.error) throw result.error;
 
@@ -191,6 +194,11 @@ export default function ClientDetailPage() {
     return <div className="p-8">Client not found</div>;
   }
 
+  if (!clientId) {
+
+  return <div className="p-8">Missing client ID</div>;
+
+}
   const totalCashValue = client.cash_balances.reduce((sum, bal) => sum + Number(bal.balance), 0);
   const totalHoldingsValue = client.holdings.reduce((sum, holding) => sum + Number(holding.current_value), 0);
   const totalValue = totalCashValue + totalHoldingsValue;
@@ -919,14 +927,14 @@ export default function ClientDetailPage() {
       <AddInvestmentDialog
         open={isAddInvestmentOpen}
         onOpenChange={setIsAddInvestmentOpen}
-        clientId={Array.isArray(params.id) ? params.id[0] : params.id}
+        clientId={clientId}
         onSuccess={loadClientData}
       />
 
       <AddFundsDialog
         open={isAddFundsOpen}
         onOpenChange={setIsAddFundsOpen}
-        clientId={Array.isArray(params.id) ? params.id[0] : params.id}
+        clientId={clientId}
         baseCurrency={client.base_currency}
         onSuccess={loadClientData}
       />
@@ -934,7 +942,7 @@ export default function ClientDetailPage() {
       <FundPendingInvestmentDialog
         open={isFundPendingOpen}
         onOpenChange={setIsFundPendingOpen}
-        clientId={Array.isArray(params.id) ? params.id[0] : params.id}
+        clientId={clientId}
         pendingHoldings={pendingHoldings}
         cashBalance={totalCashValue}
         baseCurrency={client.base_currency}
@@ -944,7 +952,7 @@ export default function ClientDetailPage() {
       <UploadDocumentDialog
         open={isUploadDocOpen}
         onOpenChange={setIsUploadDocOpen}
-        clientId={Array.isArray(params.id) ? params.id[0] : params.id}
+        clientId={clientId}
         onSuccess={loadClientData}
       />
 
@@ -958,7 +966,7 @@ export default function ClientDetailPage() {
       <AddIPOHoldingDialog
         open={isAddIPOOpen}
         onOpenChange={setIsAddIPOOpen}
-        clientId={Array.isArray(params.id) ? params.id[0] : params.id}
+        clientId={clientId}
         onSuccess={loadClientData}
       />
 
