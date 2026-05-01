@@ -126,7 +126,7 @@ export default function DocumentsPage() {
       file_url: formData.file_url,
       file_size: 256000,
       uploaded_by: profile?.id,
-      status: 'AVAILABLE',
+      status: 'PENDING',
       requires_signature: false,
     });
 
@@ -192,7 +192,15 @@ export default function DocumentsPage() {
   );
 }
 
-  const pendingDocs = documents.filter(d => d.status === 'NEEDS_SIGNATURE');
+  const kycPending = documents.filter(d => d.status === 'PENDING');
+  const approvedDocs = documents.filter(d => d.status === 'APPROVED');
+  const rejectedDocs = documents.filter(d => d.status === 'REJECTED');
+  const getStatusBadge = (status: string) => {
+  if (status === 'APPROVED') return 'bg-green-100 text-green-700';
+  if (status === 'REJECTED') return 'bg-red-100 text-red-700';
+  if (status === 'PENDING') return 'bg-yellow-100 text-yellow-700';
+  return 'bg-gray-100 text-gray-700';
+};
   const completedDocs = documents.filter(d => d.status !== 'NEEDS_SIGNATURE');
 
   return (
