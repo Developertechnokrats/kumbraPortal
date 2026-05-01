@@ -14,25 +14,42 @@ import { formatCurrency } from '@/lib/utils/format';
 export default function InvestmentDetailPage() {
   const params = useParams();
   const router = useRouter();
+
+  const idParam = params.id;
+  const investmentId = Array.isArray(idParam) ? idParam[0] : idParam;
+
   const [instrument, setInstrument] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadInstrument();
-  }, [params.id]);
+    if (investmentId) {
+      loadInstrument();
+    } else {
+      setLoading(false);
+    }
+  }, [investmentId]);
 
   const loadInstrument = async () => {
+    if (!investmentId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      const { data } = await supabase
+
+      const { data, error } = await supabase
         .from('instruments')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', investmentId)
         .single();
+
+      if (error) throw error;
 
       setInstrument(data);
     } catch (error) {
       console.error('Error loading instrument:', error);
+      setInstrument(null);
     } finally {
       setLoading(false);
     }
@@ -46,7 +63,7 @@ export default function InvestmentDetailPage() {
     );
   }
 
-  if (!instrument) {
+  if (!investmentId || !instrument) {
     return (
       <Card>
         <CardContent className="py-12 text-center">
@@ -78,12 +95,17 @@ export default function InvestmentDetailPage() {
               size="lg"
               variant="horizontal"
             />
+
             <div className="flex-1">
               <h1 className="text-3xl font-bold">{instrument.issuer_name}</h1>
-              <p className="text-muted-foreground mt-1">{instrument.metadata_json?.description}</p>
+              <p className="text-muted-foreground mt-1">
+                {instrument.metadata_json?.description}
+              </p>
+
               <div className="flex gap-2 mt-3 flex-wrap">
                 <Badge variant="outline">{instrument.asset_class}</Badge>
                 <Badge variant="outline">{instrument.currency}</Badge>
+
                 {instrument.metadata_json?.rating && (
                   <Badge variant="outline">{instrument.metadata_json.rating}</Badge>
                 )}
@@ -96,12 +118,18 @@ export default function InvestmentDetailPage() {
               <>
                 <div className="p-4 bg-primary/5 rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">Coupon Rate</p>
-                  <p className="text-3xl font-bold text-primary">{instrument.metadata_json?.coupon_rate}% p.a.</p>
+                  <p className="text-3xl font-bold text-primary">
+                    {instrument.metadata_json?.coupon_rate}% p.a.
+                  </p>
                 </div>
+
                 <div className="p-4 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">Minimum Investment</p>
                   <p className="text-2xl font-bold">
-                    {formatCurrency(instrument.metadata_json?.min_investment, instrument.currency)}
+                    {formatCurrency(
+                      instrument.metadata_json?.min_investment,
+                      instrument.currency
+                    )}
                   </p>
                 </div>
               </>
@@ -110,9 +138,7 @@ export default function InvestmentDetailPage() {
         </CardContent>
       </Card>
 
-      {instrument.asset_class === 'FIXED_INCOME' && (
-        <BondCalculator bond={instrument} />
-      )}
+      {instrument.asset_class === 'FIXED_INCOME' && <BondCalculator bond={instrument} />}
     </div>
   );
 }
