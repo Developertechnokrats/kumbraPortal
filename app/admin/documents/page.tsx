@@ -335,19 +335,22 @@ export default function DocumentsPage() {
     }
   };
 
-  const getDocTypeBadge = (type: string) => {
-    const colors: any = {
-      CONTRACT_NOTE: 'bg-blue-100 text-blue-700',
-      AGREEMENT: 'bg-emerald-100 text-emerald-700',
-      STATEMENT: 'bg-amber-100 text-amber-700',
-      KYC: 'bg-purple-100 text-purple-700',
-      OTHER: 'bg-gray-100 text-gray-700',
-    };
-    const filteredDocuments = documents.filter((doc) => {
-    const typeMatch = typeFilter === 'ALL' || doc.type === typeFilter;
-    const statusMatch = statusFilter === 'ALL' || doc.status === statusFilter;
-   return typeMatch && statusMatch;
-});
+
+const getDocTypeBadge = (type: string) => {
+
+  const colors: any = {
+
+    CONTRACT_NOTE: 'bg-blue-100 text-blue-700',
+
+    AGREEMENT: 'bg-emerald-100 text-emerald-700',
+
+    STATEMENT: 'bg-amber-100 text-amber-700',
+
+    KYC: 'bg-purple-100 text-purple-700',
+
+    OTHER: 'bg-gray-100 text-gray-700',
+
+  };
 
     return (
       <Badge className={colors[type] || 'bg-gray-100 text-gray-700'}>
@@ -356,20 +359,41 @@ export default function DocumentsPage() {
     );
   };
 
-  const getStatusBadge = (status: string) => {
-    const className =
-      status === 'APPROVED'
-        ? 'bg-green-100 text-green-700'
-        : status === 'REJECTED'
-        ? 'bg-red-100 text-red-700'
-        : status === 'PENDING'
-        ? 'bg-yellow-100 text-yellow-700'
-        : status === 'AVAILABLE'
-        ? 'bg-blue-100 text-blue-700'
-        : 'bg-gray-100 text-gray-700';
+const getStatusBadge = (status: string) => {
 
-    return <Badge className={className}>{status}</Badge>;
-  };
+  const className =
+
+    status === 'APPROVED'
+
+      ? 'bg-green-100 text-green-700'
+
+      : status === 'REJECTED'
+
+      ? 'bg-red-100 text-red-700'
+
+      : status === 'PENDING'
+
+      ? 'bg-yellow-100 text-yellow-700'
+
+      : status === 'AVAILABLE'
+
+      ? 'bg-blue-100 text-blue-700'
+
+      : 'bg-gray-100 text-gray-700';
+
+  return <Badge className={className}>{status}</Badge>;
+
+};
+
+const filteredDocuments = documents.filter((doc) => {
+
+  const typeMatch = typeFilter === 'ALL' || doc.type === typeFilter;
+
+  const statusMatch = statusFilter === 'ALL' || doc.status === statusFilter;
+
+  return typeMatch && statusMatch;
+
+});
 
   return (
     <div className="p-8 space-y-6">
@@ -386,50 +410,7 @@ export default function DocumentsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-5">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
-          </CardHeader>
-          <Card>
-  <CardHeader>
-    <CardTitle>All Documents</CardTitle>
-  </CardHeader>
-
-  {/* ✅ ADD FILTERS HERE */}
-  <div className="flex gap-4 px-6 pb-4">
-    <Select value={typeFilter} onValueChange={setTypeFilter}>
-      <SelectTrigger className="w-[200px]">
-        <SelectValue placeholder="Filter by type" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="ALL">All Types</SelectItem>
-        <SelectItem value="KYC">KYC</SelectItem>
-        <SelectItem value="CONTRACT_NOTE">Contract Notes</SelectItem>
-        <SelectItem value="AGREEMENT">Agreements</SelectItem>
-        <SelectItem value="STATEMENT">Statements</SelectItem>
-        <SelectItem value="OTHER">Other</SelectItem>
-      </SelectContent>
-    </Select>
-
-    <Select value={statusFilter} onValueChange={setStatusFilter}>
-      <SelectTrigger className="w-[200px]">
-        <SelectValue placeholder="Filter by status" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="ALL">All Statuses</SelectItem>
-        <SelectItem value="PENDING">Pending</SelectItem>
-        <SelectItem value="APPROVED">Approved</SelectItem>
-        <SelectItem value="REJECTED">Rejected</SelectItem>
-        <SelectItem value="AVAILABLE">Available</SelectItem>
-      </SelectContent>
-    </Select>
-  </div>
-
-  <CardContent></CardContent>
-          <CardContent>
-            <div className="text-2xl font-bold">{documents.length}</div>
-          </CardContent>
-        </Card>
+        
 
         <Card>
           <CardHeader className="pb-2">
@@ -487,7 +468,61 @@ export default function DocumentsPage() {
         <CardHeader>
           <CardTitle>All Documents</CardTitle>
         </CardHeader>
+  {/* ✅ FILTERS GO HERE */}
 
+  <div className="flex gap-4 px-6 pb-4">
+
+    <Select value={typeFilter} onValueChange={setTypeFilter}>
+
+      <SelectTrigger className="w-[200px]">
+
+        <SelectValue placeholder="Filter by type" />
+
+      </SelectTrigger>
+
+      <SelectContent>
+
+        <SelectItem value="ALL">All Types</SelectItem>
+
+        <SelectItem value="KYC">KYC</SelectItem>
+
+        <SelectItem value="CONTRACT_NOTE">Contract Notes</SelectItem>
+
+        <SelectItem value="AGREEMENT">Agreements</SelectItem>
+
+        <SelectItem value="STATEMENT">Statements</SelectItem>
+
+        <SelectItem value="OTHER">Other</SelectItem>
+
+      </SelectContent>
+
+    </Select>
+
+    <Select value={statusFilter} onValueChange={setStatusFilter}>
+
+      <SelectTrigger className="w-[200px]">
+
+        <SelectValue placeholder="Filter by status" />
+
+      </SelectTrigger>
+
+      <SelectContent>
+
+        <SelectItem value="ALL">All Statuses</SelectItem>
+
+        <SelectItem value="PENDING">Pending</SelectItem>
+
+        <SelectItem value="APPROVED">Approved</SelectItem>
+
+        <SelectItem value="REJECTED">Rejected</SelectItem>
+
+        <SelectItem value="AVAILABLE">Available</SelectItem>
+
+      </SelectContent>
+
+    </Select>
+
+  </div>
         <CardContent>
           {loading ? (
             <div className="flex items-center justify-center py-12">
