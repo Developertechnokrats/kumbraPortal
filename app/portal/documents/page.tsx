@@ -183,8 +183,14 @@ export default function DocumentsPage() {
   };
 
   if (loading || authLoading) {
-    return <div className="space-y-4 animate-pulse">{[...Array(5)].map((_, i) => <div key={i} className="h-24 bg-slate-200 rounded-lg"></div>)}</div>;
-  }
+  return (
+    <div className="space-y-4 animate-pulse">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="h-24 bg-slate-200 rounded-lg" />
+      ))}
+    </div>
+  );
+}
 
   const pendingDocs = documents.filter(d => d.status === 'NEEDS_SIGNATURE');
   const completedDocs = documents.filter(d => d.status !== 'NEEDS_SIGNATURE');
