@@ -297,15 +297,16 @@ export default function DocumentsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="KYC_PASSPORT">Passport</SelectItem>
-                  <SelectItem value="KYC_ID_CARD">ID Card</SelectItem>
-                  <SelectItem value="KYC_UTILITY_BILL">Utility Bill</SelectItem>
-                  <SelectItem value="STATEMENT">Bank Statement</SelectItem>
-                  <SelectItem value="AGREEMENT_CORPORATE">Corporate Document</SelectItem>
-                  <SelectItem value="AGREEMENT_SIGNED">Signed Agreement</SelectItem>
-                  <SelectItem value="OTHER_BANK_TRANSFER">Bank Transfer Confirmation</SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
-              </Select>
+                    <SelectItem value="KYC_PASSPORT">Passport</SelectItem>
+                    <SelectItem value="KYC_ID_CARD">ID Card</SelectItem>
+                    <SelectItem value="KYC_UTILITY_BILL">Utility Bill</SelectItem>
+                    <SelectItem value="STATEMENT">Bank Statement</SelectItem>
+                    <SelectItem value="AGREEMENT_CORPORATE">Corporate Document</SelectItem>
+                    <SelectItem value="AGREEMENT_SIGNED">Signed Agreement</SelectItem>
+                    <SelectItem value="OTHER_BANK_TRANSFER">Bank Transfer Confirmation</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                  </Select>
             </div>
             <div className="space-y-2">
               <Label>Document Title *</Label>
