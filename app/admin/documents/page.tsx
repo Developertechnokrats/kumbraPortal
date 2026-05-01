@@ -21,6 +21,8 @@ export default function DocumentsPage() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [typeFilter, setTypeFilter] = useState('ALL');
 
   const [formData, setFormData] = useState({
     client_id: '',
@@ -341,6 +343,11 @@ export default function DocumentsPage() {
       KYC: 'bg-purple-100 text-purple-700',
       OTHER: 'bg-gray-100 text-gray-700',
     };
+    const filteredDocuments = documents.filter((doc) => {
+    const typeMatch = typeFilter === 'ALL' || doc.type === typeFilter;
+    const statusMatch = statusFilter === 'ALL' || doc.status === statusFilter;
+   return typeMatch && statusMatch;
+});
 
     return (
       <Badge className={colors[type] || 'bg-gray-100 text-gray-700'}>
@@ -383,6 +390,42 @@ export default function DocumentsPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
           </CardHeader>
+          <Card>
+  <CardHeader>
+    <CardTitle>All Documents</CardTitle>
+  </CardHeader>
+
+  {/* ✅ ADD FILTERS HERE */}
+  <div className="flex gap-4 px-6 pb-4">
+    <Select value={typeFilter} onValueChange={setTypeFilter}>
+      <SelectTrigger className="w-[200px]">
+        <SelectValue placeholder="Filter by type" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="ALL">All Types</SelectItem>
+        <SelectItem value="KYC">KYC</SelectItem>
+        <SelectItem value="CONTRACT_NOTE">Contract Notes</SelectItem>
+        <SelectItem value="AGREEMENT">Agreements</SelectItem>
+        <SelectItem value="STATEMENT">Statements</SelectItem>
+        <SelectItem value="OTHER">Other</SelectItem>
+      </SelectContent>
+    </Select>
+
+    <Select value={statusFilter} onValueChange={setStatusFilter}>
+      <SelectTrigger className="w-[200px]">
+        <SelectValue placeholder="Filter by status" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="ALL">All Statuses</SelectItem>
+        <SelectItem value="PENDING">Pending</SelectItem>
+        <SelectItem value="APPROVED">Approved</SelectItem>
+        <SelectItem value="REJECTED">Rejected</SelectItem>
+        <SelectItem value="AVAILABLE">Available</SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+
+  <CardContent></CardContent>
           <CardContent>
             <div className="text-2xl font-bold">{documents.length}</div>
           </CardContent>
@@ -464,7 +507,7 @@ export default function DocumentsPage() {
               </TableHeader>
 
               <TableBody>
-                {documents.map((doc) => (
+                {filteredDocuments.map((doc) => (
                   <TableRow key={doc.id}>
                     <TableCell className="font-mono text-sm">
                       {new Date(doc.created_at).toLocaleDateString('en-GB')}
