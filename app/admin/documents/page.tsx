@@ -231,6 +231,7 @@ export default function DocumentsPage() {
       const { error: docError } = await (supabase.from('documents') as any)
         .update({
           status: 'APPROVED',
+          rejection_note: null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', doc.id);
@@ -288,19 +289,29 @@ export default function DocumentsPage() {
   };
 
   const handleRejectKYC = async (doc: any) => {
-    if (!confirm(`Reject KYC document for ${(doc.client as any)?.profile?.name || 'this client'}?`)) return;
+  const rejectionNote = prompt(
+    `Please enter rejection feedback for "${doc.title}":`
+  );
 
-    try {
-      setProcessing(true);
+  if (!rejectionNote || !rejectionNote.trim()) {
+    alert('Rejection feedback is required.');
+    return;
+  }
 
-      const { error: docError } = await (supabase.from('documents') as any)
-        .update({
-          status: 'REJECTED',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', doc.id);
+  if (!confirm(`Reject KYC for ${(doc.client as any).profile.name}?`)) return;
 
-      if (docError) throw docError;
+  try {
+    setProcessing(true);
+
+    const { error: docError } = await (supabase.from('documents') as any)
+      .update({
+        status: 'REJECTED',
+        rejection_note: rejectionNote.trim(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', doc.id);
+
+    if (docError) throw docError;
 
       const { error: clientError } = await (supabase.from('clients') as any)
         .update({

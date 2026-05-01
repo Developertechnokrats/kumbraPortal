@@ -254,6 +254,11 @@ export default function DocumentsPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-semibold text-lg">{doc.title}</h3>
+                      {doc.status === 'REJECTED' && doc.rejection_note && (
+  <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+    <strong>Rejection Note:</strong> {doc.rejection_note}
+  </div>
+)}
                       {getStatusIcon(doc.status)}
                       <Badge variant="outline">{doc.type.replace(/_/g, ' ')}</Badge>
                     </div>
