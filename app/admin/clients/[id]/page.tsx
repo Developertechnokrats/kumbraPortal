@@ -84,38 +84,44 @@ export default function ClientDetailPage() {
   }, [params.id]);
 
   const loadClientData = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select(`
-          *,
-          profile:profiles!clients_user_id_fkey(name, phone)
-        `)
-        .eq('id', params.id)
-        .single();
+    const clientId = Array.isArray(params.id) ? params.id[0] : params.id;
 
-      if (clientError) throw clientError;
+    if (!clientId) {
+      throw new Error('Missing client ID');
+    }
+
+    const { data: clientData, error: clientError } = await supabase
+      .from('clients')
+      .select(`
+        *,
+        profile:profiles!clients_user_id_fkey(name, phone)
+      `)
+      .eq('id', clientId)
+      .single();
+
+    if (clientError) throw clientError;
 
       const { data: userData } = await supabase.auth.admin.getUserById((clientData as any).user_id);
 
       const [cashData, holdingsData, documentsData, transactionsData, auditLogsData, notificationsData, bankAccountsData, emailsData] = await Promise.all([
-        supabase.from('cash_balances').select('*').eq('client_id', params.id),
+        supabase.from('cash_balances').select('*').eq('entity_id', clientId),
         supabase
           .from('holdings')
           .select(`
             *,
             instrument:instruments(*)
           `)
-          .eq('client_id', params.id)
+          .eq('entity_id', clientId)
           .order('created_at', { ascending: false }),
-        supabase.from('documents').select('*').eq('client_id', params.id).order('created_at', { ascending: false }),
-        supabase.from('transactions').select('*').eq('client_id', params.id).order('created_at', { ascending: false }),
-        supabase.from('audit_logs').select('*').eq('entity_id', params.id).order('created_at', { ascending: false }).limit(50),
-        supabase.from('notifications').select('*').eq('client_id', params.id).order('created_at', { ascending: false }),
-        supabase.from('client_bank_accounts').select('*').eq('client_id', params.id),
-        supabase.from('inbound_emails').select('*').eq('client_id', params.id).order('created_at', { ascending: false }).limit(20),
+        supabase.from('documents').select('*').eq('entity_id', clientId).order('created_at', { ascending: false }),
+        supabase.from('transactions').select('*').eq('entity_id', clientId).order('created_at', { ascending: false }),
+        supabase.from('audit_logs').select('*').eq('entity_id', clientId).order('created_at', { ascending: false }).limit(50),
+        supabase.from('notifications').select('*').eq('entity_id', clientId).order('created_at', { ascending: false }),
+        supabase.from('client_bank_accounts').select('*').eq('entity_id', clientId),
+        supabase.from('inbound_emails').select('*').eq('entity_id', clientId).order('created_at', { ascending: false }).limit(20),
       ]);
 
       setClient({
@@ -913,14 +919,14 @@ export default function ClientDetailPage() {
       <AddInvestmentDialog
         open={isAddInvestmentOpen}
         onOpenChange={setIsAddInvestmentOpen}
-        clientId={params.id as string}
+        clientId={Array.isArray(params.id) ? params.id[0] : params.id}
         onSuccess={loadClientData}
       />
 
       <AddFundsDialog
         open={isAddFundsOpen}
         onOpenChange={setIsAddFundsOpen}
-        clientId={params.id as string}
+        clientId={Array.isArray(params.id) ? params.id[0] : params.id}
         baseCurrency={client.base_currency}
         onSuccess={loadClientData}
       />
@@ -928,7 +934,7 @@ export default function ClientDetailPage() {
       <FundPendingInvestmentDialog
         open={isFundPendingOpen}
         onOpenChange={setIsFundPendingOpen}
-        clientId={params.id as string}
+        clientId={Array.isArray(params.id) ? params.id[0] : params.id}
         pendingHoldings={pendingHoldings}
         cashBalance={totalCashValue}
         baseCurrency={client.base_currency}
@@ -938,7 +944,7 @@ export default function ClientDetailPage() {
       <UploadDocumentDialog
         open={isUploadDocOpen}
         onOpenChange={setIsUploadDocOpen}
-        clientId={params.id as string}
+        clientId={Array.isArray(params.id) ? params.id[0] : params.id}
         onSuccess={loadClientData}
       />
 
@@ -952,7 +958,7 @@ export default function ClientDetailPage() {
       <AddIPOHoldingDialog
         open={isAddIPOOpen}
         onOpenChange={setIsAddIPOOpen}
-        clientId={params.id as string}
+        clientId={Array.isArray(params.id) ? params.id[0] : params.id}
         onSuccess={loadClientData}
       />
 
