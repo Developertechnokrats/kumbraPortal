@@ -216,6 +216,88 @@ export default function DocumentsPage() {
     };
     return <Badge className={colors[type] || ''}>{type.replace('_', ' ')}</Badge>;
   };
+const handleApproveKYC = async (doc: any) => {
+  if (!confirm(`Approve KYC for ${(doc.client as any).profile.name}?`)) return;
+
+  try {
+    setProcessing(true);
+
+    const { error: clientError } = await (supabase.from('clients') as any)
+      .update({
+        kyc_status: 'APPROVED',
+        kyc_documents_approved: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', doc.client_id);
+
+    if (clientError) throw clientError;
+
+    await (supabase.from('audit_logs') as any).insert({
+      actor_id: profile?.id,
+      action: 'APPROVE_KYC',
+      entity: 'CLIENT',
+      entity_id: doc.client_id,
+      after_json: {
+        client_name: (doc.client as any).profile.name,
+        document_title: doc.title,
+      },
+    });
+
+    alert('KYC approved successfully');
+    loadData();
+  } catch (error: any) {
+    console.error('Error approving KYC:', error);
+    alert('Error approving KYC: ' + error.message);
+  } finally {
+    setProcessing(false);
+  }
+};
+
+const handleRejectKYC = async (doc: any) => {
+  if (!confirm(`Reject KYC for ${(doc.client as any).profile.name}?`)) return;
+
+  try {
+    setProcessing(true);
+
+    const { error: docError } = await (supabase.from('documents') as any)
+      .update({
+        status: 'REJECTED',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', doc.id);
+
+    if (docError) throw docError;
+
+    const { error: clientError } = await (supabase.from('clients') as any)
+      .update({
+        kyc_status: 'REJECTED',
+        kyc_documents_approved: false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', doc.client_id);
+
+    if (clientError) throw clientError;
+
+    await (supabase.from('audit_logs') as any).insert({
+      actor_id: profile?.id,
+      action: 'REJECT_KYC',
+      entity: 'CLIENT',
+      entity_id: doc.client_id,
+      after_json: {
+        client_name: (doc.client as any).profile.name,
+        document_title: doc.title,
+      },
+    });
+
+    alert('KYC rejected');
+    loadData();
+  } catch (error: any) {
+    console.error('Error rejecting KYC:', error);
+    alert('Error rejecting KYC: ' + error.message);
+  } finally {
+    setProcessing(false);
+  }
+};
 
   return (
     <div className="p-8 space-y-6">
@@ -314,20 +396,44 @@ export default function DocumentsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleViewDocument(doc)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteDocument(doc)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
+                                                              <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleViewDocument(doc)}
+                                      >
+                                        <Eye className="h-4 w-4" />
+                                      </Button>
+
+                                      {doc.type === 'KYC' && doc.status !== 'REJECTED' && (
+                                        <>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleApproveKYC(doc)}
+                                            disabled={processing}
+                                          >
+                                            Approve
+                                          </Button>
+
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleRejectKYC(doc)}
+                                            disabled={processing}
+                                            className="text-red-600"
+                                          >
+                                            Reject
+                                          </Button>
+                                        </>
+                                      )}
+
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleDeleteDocument(doc)}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                      </Button>
                       </div>
                     </TableCell>
                   </TableRow>

@@ -97,45 +97,59 @@ export default function DocumentsPage() {
   };
 
   const handleUploadDocument = async () => {
-    if (!formData.title) {
-      toast.error('Please enter a document title');
-      return;
+  if (!formData.title) {
+    toast.error('Please enter a document title');
+    return;
+  }
+
+  if (!formData.file_url) {
+    toast.error('Please upload a file');
+    return;
+  }
+
+  try {
+    setUploading(true);
+
+    const documentType =
+      formData.type.startsWith('KYC')
+        ? 'KYC'
+        : formData.type.startsWith('AGREEMENT')
+        ? 'AGREEMENT'
+        : formData.type.startsWith('OTHER')
+        ? 'OTHER'
+        : formData.type;
+
+    const { error: insertError } = await (supabase.from('documents') as any).insert({
+      client_id: client!.id,
+      type: documentType,
+      title: formData.title,
+      file_url: formData.file_url,
+      file_size: 256000,
+      uploaded_by: profile?.id,
+      status: 'AVAILABLE',
+      requires_signature: false,
+    });
+
+    if (insertError) {
+      throw insertError;
     }
 
-    if (!formData.file_url) {
-      toast.error('Please upload a file');
-      return;
-    }
+    toast.success('Document uploaded successfully!');
+    setIsUploadOpen(false);
+    setFormData({
+      type: 'OTHER',
+      title: '',
+      file_url: '',
+    });
 
-    try {
-      setUploading(true);
-
-      await (supabase.from('documents') as any).insert({
-        client_id: client!.id,
-        type: formData.type,
-        title: formData.title,
-        file_url: formData.file_url,
-        file_size: 256000,
-        uploaded_by: profile?.id,
-        status: 'AVAILABLE',
-        requires_signature: false
-      });
-
-      toast.success('Document uploaded successfully!');
-      setIsUploadOpen(false);
-      setFormData({
-        type: 'OTHER',
-        title: '',
-        file_url: '',
-      });
-      loadDocuments();
-    } catch (error: any) {
-      console.error('Error uploading document:', error);
-      toast.error('Error uploading document: ' + error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
+    await loadDocuments();
+  } catch (error: any) {
+    console.error('Error uploading document:', error);
+    toast.error('Error uploading document: ' + error.message);
+  } finally {
+    setUploading(false);
+  }
+};
 
   const handleViewDocument = async (doc: any) => {
     try {
@@ -277,15 +291,14 @@ export default function DocumentsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="KYC">Passport</SelectItem>
-                  <SelectItem value="KYC">ID Card</SelectItem>
-                  <SelectItem value="KYC">Utility Bill</SelectItem>
+                  <SelectItem value="KYC_PASSPORT">Passport</SelectItem>
+                  <SelectItem value="KYC_ID_CARD">ID Card</SelectItem>
+                  <SelectItem value="KYC_UTILITY_BILL">Utility Bill</SelectItem>
                   <SelectItem value="STATEMENT">Bank Statement</SelectItem>
-                  <SelectItem value="AGREEMENT">Corporate Document</SelectItem>
-                  <SelectItem value="AGREEMENT">Signed Agreement</SelectItem>
-                  <SelectItem value="OTHER">Bank Transfer Confirmation</SelectItem>
+                  <SelectItem value="AGREEMENT_CORPORATE">Corporate Document</SelectItem>
+                  <SelectItem value="AGREEMENT_SIGNED">Signed Agreement</SelectItem>
+                  <SelectItem value="OTHER_BANK_TRANSFER">Bank Transfer Confirmation</SelectItem>
                   <SelectItem value="OTHER">Other</SelectItem>
-                </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
