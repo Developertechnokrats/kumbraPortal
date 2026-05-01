@@ -202,6 +202,7 @@ export default function DocumentsPage() {
   return 'bg-gray-100 text-gray-700';
 };
   const completedDocs = documents.filter(d => d.status !== 'NEEDS_SIGNATURE');
+  const pendingDocs = documents.filter(d => d.status === 'NEEDS_SIGNATURE');
 
   return (
     <div className="space-y-8">
