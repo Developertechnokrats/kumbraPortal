@@ -7,6 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+export const runtime = 'nodejs';
+
 export async function OPTIONS() {
   return new Response(null, {
     status: 204,
@@ -57,33 +59,24 @@ export async function POST(req: NextRequest) {
 
     let userId: string;
 
-  if (existingUser) {
+    if (existingUser) {
+      userId = existingUser.id;
 
-  userId = existingUser.id;
+      const { error: updateUserError } =
+        await supabaseAdmin.auth.admin.updateUserById(userId, {
+          password,
+          email_confirm: true,
+          user_metadata: {
+            name: fullName,
+          },
+        });
 
-  const { error: updateUserError } =
-
-    await supabaseAdmin.auth.admin.updateUserById(userId, {
-
-      password,
-
-      email_confirm: true,
-
-      user_metadata: {
-
-        name: fullName,
-
-      },
-
-    });
-
-  if (updateUserError) {
-
-    throw new Error(updateUserError.message || 'Failed to update existing auth user.');
-
-  }
-
-} else {
+      if (updateUserError) {
+        throw new Error(
+          updateUserError.message || 'Failed to update existing auth user.'
+        );
+      }
+    } else {
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email: cleanEmail,
@@ -116,37 +109,37 @@ export async function POST(req: NextRequest) {
 
     let clientId: string | null = null;
 
-const { data: existingClient } = await supabaseAdmin
-  .from('clients')
-  .select('id')
-  .eq('user_id', userId)
-  .maybeSingle();
+    const { data: existingClient } = await supabaseAdmin
+      .from('clients')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
 
-if (existingClient) {
-  clientId = existingClient.id;
-} else {
-  const { data: newClient, error: clientError } = await supabaseAdmin
-    .from('clients')
-    .insert({
-      user_id: userId,
-      account_type: 'INDIVIDUAL',
-      base_currency: application.preferred_currency || 'GBP',
-      kyc_status: 'PENDING',
-      bank_verified: false,
-      country_of_residence: application.country || null,
-      risk_profile: application.risk_tolerance || null,
-      date_of_birth: application.date_of_birth || null,
-      payment_account_name: application.bank_account_holder || null,
-      payment_account_number: application.bank_account_number || null,
-      account_status: 'ACTIVE',
-    })
-    .select('id')
-    .maybeSingle();
+    if (existingClient) {
+      clientId = existingClient.id;
+    } else {
+      const { data: newClient, error: clientError } = await supabaseAdmin
+        .from('clients')
+        .insert({
+          user_id: userId,
+          account_type: 'INDIVIDUAL',
+          base_currency: application.preferred_currency || 'GBP',
+          kyc_status: 'PENDING',
+          bank_verified: false,
+          country_of_residence: application.country || null,
+          risk_profile: application.risk_tolerance || null,
+          date_of_birth: application.date_of_birth || null,
+          payment_account_name: application.bank_account_holder || null,
+          payment_account_number: application.bank_account_number || null,
+          account_status: 'ACTIVE',
+        })
+        .select('id')
+        .maybeSingle();
 
-  if (clientError) throw clientError;
+      if (clientError) throw clientError;
 
-  clientId = newClient?.id || null;
-}
+      clientId = newClient?.id || null;
+    }
 
     await supabaseAdmin
       .from('account_applications')
@@ -156,17 +149,39 @@ if (existingClient) {
       })
       .eq('id', application.id);
 
+    // Send welcome email. Do not block signup if email fails.
+    try {
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL || 'https://kumbrasecure.com';
+
+      await fetch(`${siteUrl}/api/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: cleanEmail,
+          type: 'WELCOME',
+          name: fullName,
+          email: cleanEmail,
+          password,
+        }),
+      });
+    } catch (emailError) {
+      console.error('Welcome email failed:', emailError);
+    }
+
     return NextResponse.json(
-  {
-    success: true,
-    userId,
-    clientId,
-    message: 'Client portal account created successfully.',
-  },
-  {
-    headers: corsHeaders,
-  }
-);
+      {
+        success: true,
+        userId,
+        clientId,
+        message: 'Client portal account created successfully.',
+      },
+      {
+        headers: corsHeaders,
+      }
+    );
   } catch (error: any) {
     console.error('Create client from application error:', error);
 
@@ -175,4 +190,4 @@ if (existingClient) {
       { status: 500, headers: corsHeaders }
     );
   }
-} 
+}
