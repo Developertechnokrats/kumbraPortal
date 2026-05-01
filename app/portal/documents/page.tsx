@@ -100,7 +100,7 @@ export default function DocumentsPage() {
           ? 'OTHER'
           : formData.type;
 
-      const { error } = await supabase.from('documents').insert({
+      const { error } = await (supabase.from('documents') as any).insert({
         client_id: client!.id,
         type,
         title: formData.title,
